@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "custom-purple": "#B39CD0",
+              "custom-pink": "#F1BBBA",
+              "custom-orange": "#F7C6A2",
+              "custom-yellow": "#FDFD96",
+              "custom-peach": "#F5D7B7",
+              "custom-light-blue": "#B2DFFF",
+              "custom-teal": "#6BADC6",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      /* Enhanced Animations for Better UX */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes slideInLeft {
+        from {
+          opacity: 0;
+          transform: translateX(-50px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+
+      @keyframes bounce {
+        0%,
+        20%,
+        53%,
+        80%,
+        100% {
+          transform: translateY(0);
+        }
+        40%,
+        43% {
+          transform: translateY(-8px);
+        }
+        70% {
+          transform: translateY(-4px);
+        }
+        90% {
+          transform: translateY(-2px);
+        }
+      }
+
+      @keyframes glow {
+        0%,
+        100% {
+          box-shadow: 0 0 5px rgba(179, 156, 208, 0.5);
+        }
+        50% {
+          box-shadow: 0 0 20px rgba(179, 156, 208, 0.8),
+            0 0 30px rgba(179, 156, 208, 0.6);
+        }
+      }
+
+      @keyframes shimmer {
+        0% {
+          background-position: -200% 0;
+        }
+        100% {
+          background-position: 200% 0;
+        }
+      }
+
+      /* Sidebar Animations */
+      .sidebar-button {
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .sidebar-button:hover {
+        transform: translateX(8px) scale(1.02);
+        background-color: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .sidebar-button::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+        transition: left 0.5s;
+      }
+
+      .sidebar-button:hover::before {
+        left: 100%;
+      }
+
+      /* Menu Button Animations */
+      .menu-hamburger {
+        font-size: 1.2rem;
+        line-height: 1;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .menu-hamburger:hover {
+        animation: pulse 0.6s ease-in-out;
+        background-color: rgba(179, 156, 208, 0.9) !important;
+      }
+
+      .menu-cross {
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: white;
+        line-height: 1;
+        display: none;
+        transition: all 0.3s ease;
+      }
+
+      .menu-cross:hover {
+        transform: rotate(90deg) scale(1.1);
+        color: #ff6b6b;
+      }
+
+      #menu-toggle:checked ~ aside .menu-cross {
+        display: block;
+        animation: fadeInUp 0.3s ease;
+      }
+
+      /* Card Animations */
+      .card-hover {
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .card-hover:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1),
+          0 5px 15px rgba(0, 0, 0, 0.08);
+      }
+
+      .card-hover::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          45deg,
+          transparent 30%,
+          rgba(255, 255, 255, 0.1) 50%,
+          transparent 70%
+        );
+        transform: translateX(-100%);
+        transition: transform 0.6s;
+      }
+
+      .card-hover:hover::after {
+        transform: translateX(100%);
+      }
+
+      /* Button Animations */
+      .btn-animated {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        background-size: 200% 100%;
+        background-image: linear-gradient(
+          45deg,
+          transparent 0%,
+          rgba(255, 255, 255, 0.1) 50%,
+          transparent 100%
+        );
+      }
+
+      .btn-animated:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        animation: shimmer 0.8s ease-in-out;
+      }
+
+      .btn-animated:active {
+        transform: translateY(0);
+        transition: transform 0.1s;
+      }
+
+      /* Dark Mode Toggle Animations */
+      .dark-mode-toggle {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .dark-mode-toggle:hover {
+        transform: scale(1.1) rotate(15deg);
+        animation: glow 1s ease-in-out;
+      }
+
+      /* Page Load Animations */
+      .animate-on-load {
+        animation: fadeInUp 0.8s ease-out;
+      }
+
+      .animate-delayed {
+        animation: fadeInUp 0.8s ease-out 0.2s both;
+      }
+
+      .animate-delayed-2 {
+        animation: fadeInUp 0.8s ease-out 0.4s both;
+      }
+
+      .animate-slide-left {
+        animation: slideInLeft 0.6s ease-out;
+      }
+
+      /* List Item Animations */
+      .list-item-animated {
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .list-item-animated:hover {
+        transform: translateX(5px);
+        background-color: rgba(179, 156, 208, 0.05);
+        border-left: 4px solid var(--custom-purple);
+      }
+
+      /* Stats Counter Animation */
+      .stats-number {
+        transition: all 0.3s ease;
+      }
+
+      .stats-card:hover .stats-number {
+        animation: bounce 0.6s ease;
+        color: white;
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 768px) {
+        .card-hover:hover {
+          transform: translateY(-4px) scale(1.01);
+        }
+
+        .btn-animated:hover {
+          transform: translateY(-1px);
+        }
+      }
+    </style>
+  </head>
+  <body
+    class="bg-gray-100 dark:bg-gray-900 text-slate-700 dark:text-gray-300 flex h-screen overflow-hidden transition-colors duration-300"
+  >
+    <input type="checkbox" id="menu-toggle" class="hidden peer" />
+
+    <label
+      for="menu-toggle"
+      class="fixed inset-0 bg-black bg-opacity-50 hidden peer-checked:block z-30"
+    ></label>
+
+    <aside
+      class="fixed top-0 left-0 w-64 h-full bg-custom-purple text-white transform -translate-x-full peer-checked:translate-x-0 transition-transform duration-300 ease-in-out z-40"
+    >
+      <div
+        class="p-6 text-2xl font-bold border-b border-custom-purple-dark flex justify-between items-center"
+      >
+        <span>Menu</span>
+        <label for="menu-toggle" class="menu-cross">✖</label>
+      </div>
+      <nav class="flex-1 p-4 space-y-2">
+        <button
+          onclick="showSection('home')"
+          class="w-full text-left px-4 py-2 rounded-md hover:bg-custom-purple-dark transition-all duration-300 sidebar-button"
+        >
+          🏠 Dashboard
+        </button>
+        {% if current_user.is_scheduler() %}
+        <button
+          onclick="showSection('classrooms')"
+          class="w-full text-left px-4 py-2 rounded-md hover:bg-custom-purple-dark transition-all duration-300 sidebar-button"
+        >
+          🏫 Classrooms
+        </button>
+        <button
+          onclick="showSection('faculties')"
+          class="w-full text-left px-4 py-2 rounded-md hover:bg-custom-purple-dark transition-all duration-300 sidebar-button"
+        >
+          👨‍🏫 Faculties
+        </button>
+        <button
+          onclick="showSection('subjects')"
+          class="w-full text-left px-4 py-2 rounded-md hover:bg-custom-purple-dark transition-all duration-300 sidebar-button"
+        >
+          📚 Subjects
+        </button>
+        {% endif %} {% if current_user.is_faculty() %}
+        <a
+          href="{{ url_for('main.faculty_timetable_view') }}"
+          class="block w-full text-left px-4 py-2 rounded-md hover:bg-custom-purple-dark transition-all duration-300 sidebar-button"
+        >
+          📅 My Timetable
+        </a>
+        {% endif %}
+      </nav>
+      <div class="p-4 border-t border-custom-purple-dark">
+        <a
+          href="{{ url_for('main.logout') }}"
+          class="block bg-red-500 hover:bg-red-600 text-center px-4 py-2 rounded-md font-medium transition-all duration-300 transform hover:scale-105"
+        >
+          Logout
+        </a>
+      </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col">
+      <header
+        class="bg-white dark:bg-gray-800 shadow px-6 py-4 flex justify-between items-center z-20 transition-colors duration-300"
+      >
+        <div class="flex items-center gap-3">
+          <label
+            for="menu-toggle"
+            class="bg-custom-purple text-white px-3 py-2 rounded-md cursor-pointer menu-hamburger"
+            >☰</label
+          >
+          <h2 class="text-xl font-semibold text-slate-800 dark:text-gray-200">
+            Welcome, {{ current_user.username }}
+          </h2>
+        </div>
+        <div class="flex items-center gap-3">
+          <!-- Dark Mode Toggle Button -->
+          <button
+            id="darkModeToggle"
+            class="p-2 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 transition-all duration-300 dark-mode-toggle"
+            title="Toggle dark mode"
+          >
+            <span class="text-gray-600 dark:text-yellow-400 text-lg">🌙</span>
+          </button>
+        </div>
+      </header>
+
+      <main class="flex-1 p-8 overflow-y-auto space-y-8">
+        <section
+          id="home"
+          class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg transition-colors duration-300 animate-on-load card-hover"
+        >
+          <h3
+            class="text-2xl font-semibold mb-6 text-slate-800 dark:text-gray-200 animate-slide-left"
+          >
+            Overview
+          </h3>
+
+          <div
+            class="mb-6 p-4 rounded-xl border border-gray-200 dark:border-gray-600 transition-colors duration-300"
+            style="
+              background-color: {% if current_user.is_scheduler() %}#F3F4F6{% else %}#ECFDF5{% endif %};
+            "
+          >
+            <h4
+              class="text-lg font-medium {% if current_user.is_scheduler() %}text-blue-600 dark:text-blue-400{% else %}text-green-600 dark:text-green-400{% endif %}"
+            >
+              Your Role: {% if current_user.is_scheduler() %}Scheduler/Admin{%
+              else %}Faculty Member{% endif %}
+            </h4>
+            <p class="text-sm text-slate-600 dark:text-gray-400 mt-1">
+              {% if current_user.is_scheduler() %} You can manage classrooms,
+              faculty, subjects, and generate timetables for voting. {% else %}
+              You can view and vote on timetable options generated by the
+              scheduler. {% endif %}
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-delayed">
+            <div
+              class="bg-custom-pink text-white p-6 rounded-xl shadow-md card-hover stats-card btn-animated"
+            >
+              <h4 class="text-lg font-medium">Classrooms</h4>
+              <p class="text-3xl font-bold mt-2 stats-number">
+                {{ classrooms|length }}
+              </p>
+            </div>
+            <div
+              class="bg-custom-orange text-white p-6 rounded-xl shadow-md card-hover stats-card btn-animated"
+            >
+              <h4 class="text-lg font-medium">Faculties</h4>
+              <p class="text-3xl font-bold mt-2 stats-number">
+                {{ faculties|length }}
+              </p>
+            </div>
+            <div
+              class="bg-custom-light-blue text-white p-6 rounded-xl shadow-md card-hover stats-card btn-animated"
+            >
+              <h4 class="text-lg font-medium">Subjects</h4>
+              <p class="text-3xl font-bold mt-2 stats-number">
+                {{ subjects|length }}
+              </p>
+            </div>
+          </div>
+
+          {% if current_user.is_scheduler() %}
+          <div class="mt-8 animate-delayed">
+            <h4
+              class="text-2xl font-semibold mb-4 text-slate-800 dark:text-gray-200 animate-slide-left"
+            >
+              Timetable Management
+            </h4>
+            <div
+              class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-delayed-2"
+            >
+              <a
+                href="{{ url_for('main.generate_timetables_view') }}"
+                class="bg-custom-peach text-white p-4 rounded-xl text-center font-medium btn-animated card-hover"
+              >
+                🗳 Generate 3 for Voting
+              </a>
+              <a
+                href="{{ url_for('main.view_voting_timetables') }}"
+                class="bg-custom-yellow text-gray-800 p-4 rounded-xl text-center font-medium btn-animated card-hover"
+              >
+                📈 View Voting Results
+              </a>
+              {% if published_timetable %}
+              <a
+                href="{{ url_for('main.get_published_timetable') }}"
+                class="bg-custom-teal text-white p-4 rounded-xl text-center font-medium btn-animated card-hover"
+              >
+                📅 Published Timetable
+              </a>
+              {% endif %}
+              <a
+                href="{{ url_for('main.faculty_credentials') }}"
+                class="bg-custom-purple text-white p-4 rounded-xl text-center font-medium btn-animated card-hover"
+              >
+                🔑 Faculty Credentials
+              </a>
+            </div>
+          </div>
+
+          {% if published_timetable %}
+          <div class="mt-8">
+            <div
+              class="bg-green-50 dark:bg-gray-700 border border-green-200 dark:border-green-600 rounded-xl p-4 shadow-inner transition-colors duration-300"
+            >
+              <h4
+                class="text-lg font-bold text-green-800 dark:text-green-300 mb-2"
+              >
+                📊 Current Published Timetable
+              </h4>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <p class="text-sm text-green-600 dark:text-green-400">
+                    Winner
+                  </p>
+                  <p class="font-semibold text-green-800 dark:text-green-200">
+                    {{ published_timetable.name }}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-sm text-green-600 dark:text-green-400">
+                    Total Votes
+                  </p>
+                  <p class="font-semibold text-green-800 dark:text-green-200">
+                    {{ published_timetable.vote_count }} votes
+                  </p>
+                </div>
+                <div>
+                  <p class="text-sm text-green-600 dark:text-green-400">
+                    Published
+                  </p>
+                  <p class="font-semibold text-green-800 dark:text-green-200">
+                    {{ published_timetable.published_at.strftime('%m/%d/%Y') }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endif %} {% else %}
+          <div class="mt-8">
+            <h4
+              class="text-2xl font-semibold mb-4 text-slate-800 dark:text-gray-200"
+            >
+              Faculty Actions
+            </h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <a
+                href="{{ url_for('main.view_voting_timetables') }}"
+                class="bg-custom-teal hover:bg-custom-teal-dark text-white p-4 rounded-xl text-center font-medium transition transform hover:scale-105 shadow-md hover:shadow-lg"
+              >
+                🗳 Vote on Timetables
+              </a>
+              <a
+                href="{{ url_for('main.faculty_timetable_view') }}"
+                class="bg-custom-pink hover:bg-custom-pink-dark text-white p-4 rounded-xl text-center font-medium transition transform hover:scale-105 shadow-md hover:shadow-lg"
+              >
+                📅 Enhanced Timetable
+              </a>
+            </div>
+          </div>
+          {% endif %} {% if current_user.is_faculty() %} {% if
+          published_timetable %}
+          <div class="mt-8">
+            <div
+              class="bg-blue-50 dark:bg-gray-700 p-6 rounded-xl shadow-md border border-blue-200 dark:border-blue-600 transition-colors duration-300"
+            >
+              <div
+                class="flex flex-col md:flex-row items-start md:items-center justify-between"
+              >
+                <div>
+                  <h4
+                    class="text-xl font-bold text-green-800 dark:text-green-300 mb-2"
+                  >
+                    🎉 Final Timetable Published!
+                  </h4>
+                  <p class="text-green-700 dark:text-green-300">
+                    <strong>{{ published_timetable.name }}</strong> has been
+                    selected as the winning timetable with
+                    <strong>{{ published_timetable.vote_count }} votes</strong>.
+                  </p>
+                  <p class="text-sm text-green-600 dark:text-green-400 mt-1">
+                    Published on {{
+                    published_timetable.published_at.strftime('%B %d, %Y at
+                    %I:%M %p') }}
+                  </p>
+                </div>
+                <div class="flex gap-3 mt-4 md:mt-0">
+                  <a
+                    href="{{ url_for('main.get_published_timetable') }}"
+                    class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+                  >
+                    📅 View Full Timetable
+                  </a>
+                  <a
+                    href="{{ url_for('main.export_timetable_pdf') }}"
+                    class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+                  >
+                    📄 Export PDF
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="mt-8">
+            <div
+              class="bg-blue-50 dark:bg-gray-700 p-6 rounded-xl shadow-md border border-blue-200 dark:border-blue-600 transition-colors duration-300"
+            >
+              <h4
+                class="text-xl font-semibold text-blue-600 dark:text-blue-400 mb-4"
+              >
+                📅 Your Teaching Schedule
+              </h4>
+              {% if faculty_classes %}
+              <div
+                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6"
+              >
+                <div
+                  class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl shadow-lg border border-blue-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                >
+                  <div class="flex items-center">
+                    <div class="bg-custom-pink p-3 rounded-full mr-4">
+                      <span class="text-white text-xl">📚</span>
+                    </div>
+                    <div>
+                      <h5 class="font-medium text-blue-700 mb-1">
+                        Total Classes
+                      </h5>
+                      <p class="text-3xl font-bold text-blue-600">
+                        {{ faculty_classes|length }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl shadow-lg border border-green-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                >
+                  <div class="flex items-center">
+                    <div class="bg-custom-orange p-3 rounded-full mr-4">
+                      <span class="text-white text-xl">📚</span>
+                    </div>
+                    <div>
+                      <h5 class="font-medium text-green-700 mb-1">Subject</h5>
+                      <p class="text-lg font-semibold text-green-600">
+                        {{ faculty_classes[0].subject if faculty_classes else
+                        'N/A' }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl shadow-lg border border-purple-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                >
+                  <div class="flex items-center">
+                    <div class="bg-custom-light-blue p-3 rounded-full mr-4">
+                      <span class="text-white text-xl">📅</span>
+                    </div>
+                    <div>
+                      <h5 class="font-medium text-purple-700 mb-1">
+                        Days Active
+                      </h5>
+                      <p class="text-lg font-semibold text-purple-600">
+                        {{
+                        faculty_classes|map(attribute='day')|unique|list|length
+                        }} days
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="bg-white dark:bg-gray-600 rounded-xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-500 transition-colors duration-300"
+              >
+                <div class="p-6">
+                  <div
+                    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                  >
+                    {% for class in faculty_classes %}
+                    <div
+                      class="border-l-4 border-custom-pink bg-gray-50 dark:bg-gray-500 rounded-lg p-4 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-[1.02]"
+                    >
+                      <div class="flex items-center justify-between mb-2">
+                        <span
+                          class="inline-block px-3 py-1 text-sm font-medium bg-custom-pink text-white rounded-full"
+                        >
+                          📚 {{ class.subject }}
+                        </span>
+                        <span
+                          class="text-sm text-blue-600 font-medium flex items-center"
+                        >
+                          🏫 {{ class.classroom }}
+                        </span>
+                      </div>
+                      <div class="text-lg font-semibold text-blue-800 mb-1">
+                        📅 {{ class.day }}
+                      </div>
+                      <div class="text-sm text-blue-600 font-medium">
+                        ⏰ {{ class.slot }}
+                      </div>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-8 text-center">
+                <a
+                  href="{{ url_for('main.faculty_timetable_view') }}"
+                  class="inline-block bg-custom-pink hover:bg-custom-pink-dark text-white font-medium py-3 px-6 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                >
+                  📊 View Detailed Timetable
+                </a>
+              </div>
+              {% else %}
+              <div class="text-center py-8">
+                <div class="text-6xl mb-4 text-gray-400 dark:text-gray-500">
+                  📅
+                </div>
+                <h5
+                  class="text-lg font-medium text-slate-700 dark:text-gray-300 mb-2"
+                >
+                  No Schedule Available
+                </h5>
+                <p class="text-slate-600 dark:text-gray-400">
+                  Your teaching schedule will appear here once timetables are
+                  generated. Please contact the scheduler for more information.
+                </p>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+        </section>
+
+        {% if current_user.is_scheduler() %}
+        <section
+          id="classrooms"
+          class="hidden bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg transition-colors duration-300"
+        >
+          <div class="flex justify-between items-center mb-6">
+            <h3
+              class="text-2xl font-semibold text-custom-teal dark:text-custom-teal animate-slide-left"
+            >
+              🏫 Classrooms
+            </h3>
+            <a
+              href="{{ url_for('main.add_classroom') }}"
+              class="bg-custom-teal text-white px-4 py-2 rounded-lg text-sm font-medium btn-animated"
+              >+ Add Classroom</a
+            >
+          </div>
+          <ul class="space-y-4">
+            {% for classroom in classrooms %}
+            <li
+              class="flex justify-between items-center bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-4 list-item-animated card-hover"
+            >
+              <span
+                class="text-lg font-medium text-custom-teal dark:text-custom-teal"
+                >➡ {{ classroom.name }}
+                <span class="text-sm text-gray-500 dark:text-gray-400"
+                  >(Capacity: {{ classroom.capacity }})</span
+                ></span
+              >
+              <div class="flex items-center space-x-2">
+                <a
+                  href="{{ url_for('main.edit_classroom', classroom_id=classroom.id) }}"
+                  class="text-blue-500 hover:text-blue-700 text-sm font-medium transition transform hover:scale-110"
+                  >✏ Edit</a
+                >
+                <form
+                  method="POST"
+                  action="{{ url_for('main.delete_classroom', classroom_id=classroom.id) }}"
+                  class="delete-form"
+                >
+                  <button
+                    type="submit"
+                    class="text-red-500 hover:text-red-700 text-sm font-medium transition transform hover:scale-110"
+                  >
+                    🗑 Delete
+                  </button>
+                </form>
+              </div>
+            </li>
+            {% else %}
+            <li class="text-center text-slate-600 dark:text-gray-400 py-4">
+              No classrooms added yet.
+            </li>
+            {% endfor %}
+          </ul>
+        </section>
+        {% endif %} {% if current_user.is_scheduler() %}
+        <section
+          id="faculties"
+          class="hidden bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg transition-colors duration-300"
+        >
+          <div class="flex justify-between items-center mb-6">
+            <h3
+              class="text-2xl font-semibold text-custom-orange dark:text-custom-orange"
+            >
+              👨‍🏫 Faculties
+            </h3>
+            <a
+              href="{{ url_for('main.add_faculty') }}"
+              class="bg-custom-orange text-white px-4 py-2 rounded-lg text-sm font-medium btn-animated"
+              >+ Add Faculty</a
+            >
+          </div>
+          <ul class="space-y-4">
+            {% for faculty in faculties %}
+            <li
+              class="flex justify-between items-center bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-4 list-item-animated card-hover"
+            >
+              <span
+                class="text-lg font-medium text-custom-orange-dark dark:text-custom-orange"
+                >👤 {{ faculty.name }}
+                <span class="text-sm text-gray-500 dark:text-gray-400"
+                  >(📚 {{ faculty.subject }})</span
+                ></span
+              >
+              <div class="flex items-center space-x-2">
+                <a
+                  href="{{ url_for('main.edit_faculty', faculty_id=faculty.id) }}"
+                  class="text-blue-500 hover:text-blue-700 text-sm font-medium transition transform hover:scale-110"
+                  >✏ Edit</a
+                >
+                <form
+                  method="POST"
+                  action="{{ url_for('main.delete_faculty', faculty_id=faculty.id) }}"
+                  class="delete-form"
+                >
+                  <button
+                    type="submit"
+                    class="text-red-500 hover:text-red-700 text-sm font-medium transition transform hover:scale-110"
+                  >
+                    🗑 Delete
+                  </button>
+                </form>
+              </div>
+            </li>
+            {% else %}
+            <li class="text-center text-slate-600 dark:text-gray-400 py-4">
+              No faculties added yet.
+            </li>
+            {% endfor %}
+          </ul>
+        </section>
+        {% endif %} {% if current_user.is_scheduler() %}
+        <section
+          id="subjects"
+          class="hidden bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg transition-colors duration-300"
+        >
+          <div class="flex justify-between items-center mb-6">
+            <h3
+              class="text-2xl font-semibold text-custom-pink dark:text-custom-pink"
+            >
+              📚 Subjects
+            </h3>
+            <a
+              href="{{ url_for('main.add_subject') }}"
+              class="bg-custom-pink text-white px-4 py-2 rounded-lg text-sm font-medium btn-animated"
+              >+ Add Subject</a
+            >
+          </div>
+          <ul class="space-y-4">
+            {% for subject in subjects %}
+            <li
+              class="flex justify-between items-center bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-4 list-item-animated card-hover"
+            >
+              <span
+                class="text-lg font-medium text-custom-pink-dark dark:text-custom-pink"
+                >📖 {{ subject.name }}
+                <span class="text-sm text-gray-500 dark:text-gray-400"
+                  >(⏱ {{ subject.hours_per_week }} hrs/week)</span
+                ></span
+              >
+              <div class="flex items-center space-x-2">
+                <a
+                  href="{{ url_for('main.edit_subject', subject_id=subject.id) }}"
+                  class="text-blue-500 hover:text-blue-700 text-sm font-medium transition transform hover:scale-110"
+                  >✏ Edit</a
+                >
+                <form
+                  method="POST"
+                  action="{{ url_for('main.delete_subject', subject_id=subject.id) }}"
+                  class="delete-form"
+                >
+                  <button
+                    type="submit"
+                    class="text-red-500 hover:text-red-700 text-sm font-medium transition transform hover:scale-110"
+                  >
+                    🗑 Delete
+                  </button>
+                </form>
+              </div>
+            </li>
+            {% else %}
+            <li class="text-center text-slate-600 dark:text-gray-400 py-4">
+              No subjects added yet.
+            </li>
+            {% endfor %}
+          </ul>
+        </section>
+        {% endif %}
+      </main>
+    </div>
+
+    <script>
+      function showSection(id) {
+        // Add exit animation to current section
+        const currentSection = document.querySelector(
+          "main section:not(.hidden)"
+        );
+        if (currentSection) {
+          currentSection.style.opacity = "0";
+          currentSection.style.transform = "translateX(-20px)";
+
+          setTimeout(() => {
+            currentSection.classList.add("hidden");
+
+            // Show new section with enter animation
+            const newSection = document.getElementById(id);
+            if (newSection) {
+              newSection.classList.remove("hidden");
+              newSection.style.opacity = "0";
+              newSection.style.transform = "translateX(20px)";
+
+              setTimeout(() => {
+                newSection.style.opacity = "1";
+                newSection.style.transform = "translateX(0)";
+              }, 50);
+            }
+          }, 200);
+        } else {
+          // First load
+          document
+            .querySelectorAll("main section")
+            .forEach((sec) => sec.classList.add("hidden"));
+          const newSection = document.getElementById(id);
+          if (newSection) {
+            newSection.classList.remove("hidden");
+            newSection.style.opacity = "1";
+            newSection.style.transform = "translateX(0)";
+          }
+        }
+
+        if (
+          id !== "home" &&
+          ["classrooms", "faculties", "subjects"].includes(id)
+        ) {
+          history.replaceState(null, null, "#" + id);
+        } else if (id === "home") {
+          history.replaceState(null, null, window.location.pathname);
+        }
+      }
+
+      window.onload = function () {
+        // Add page load animation
+        document.body.style.opacity = "0";
+        document.body.style.transition = "opacity 0.5s ease";
+
+        setTimeout(() => {
+          document.body.style.opacity = "1";
+        }, 100);
+
+        const hash = window.location.hash.slice(1);
+        if (hash && ["classrooms", "faculties", "subjects"].includes(hash)) {
+          showSection(hash);
+        } else {
+          showSection("home");
+        }
+
+        // Initialize staggered animations for cards
+        const cards = document.querySelectorAll(".card-hover");
+        cards.forEach((card, index) => {
+          card.style.animationDelay = `${index * 0.1}s`;
+        });
+      };
+
+      // Add smooth scrolling for better UX
+      document.addEventListener("click", function (e) {
+        if (
+          e.target.tagName === "A" &&
+          e.target.getAttribute("href") &&
+          e.target.getAttribute("href").startsWith("#")
+        ) {
+          e.preventDefault();
+          const target = document.querySelector(e.target.getAttribute("href"));
+          if (target) {
+            target.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }
+        }
+      });
+    </script>
+
+    <!-- Dark Mode JavaScript -->
+    <script src="{{ url_for('static', filename='dark-mode.js') }}"></script>
+  </body>
+</html>

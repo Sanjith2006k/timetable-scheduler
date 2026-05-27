@@ -1,0 +1,836 @@
+{% extends "base.html" %} {% block title %}Faculty Timetable View{% endblock %}
+{% block content %}
+
+<!-- React.js and dependencies -->
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          "vibrant-orange": "#FF6B35",
+          "deep-purple": "#6A4C93",
+          "soft-pink": "#E91E63",
+          "bright-yellow": "#FFD23F",
+          "warm-peach": "#F4A261",
+          coral: "#FF7F7F",
+          lavender: "#B39DDB",
+          mint: "#81C784",
+          sunset: "#FF8A65",
+        },
+        animation: {
+          "fade-in-up": "fadeInUp 0.6s ease-out forwards",
+          "slide-in-left": "slideInLeft 0.8s ease-out forwards",
+          "bounce-in": "bounceIn 0.8s ease-out forwards",
+          "pulse-glow": "pulseGlow 2s ease-in-out infinite",
+          float: "float 3s ease-in-out infinite",
+        },
+      },
+    },
+  };
+</script>
+
+<!-- Enhanced Animated Navigation -->
+<nav
+  class="navbar-custom shadow-lg"
+  style="
+    background: linear-gradient(135deg, #ff6b35 0%, #6a4c93 50%, #e91e63 100%);
+  "
+>
+  <div class="container-fluid px-4 py-3">
+    <div class="flex items-center justify-between w-full">
+      <!-- Brand with animation -->
+      <a href="{{ url_for('main.dashboard') }}" class="navbar-brand-custom">
+        <div class="flex items-center space-x-3">
+          <div class="logo-container">
+            <i class="fas fa-graduation-cap text-2xl animate-bounce"></i>
+          </div>
+          <span class="brand-text">Class Scheduler</span>
+        </div>
+      </a>
+
+      <!-- Mobile Menu Button -->
+      <button id="mobile-menu-btn" class="lg:hidden mobile-menu-btn">
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+      </button>
+
+      <!-- Navigation Links -->
+      <div id="nav-menu" class="nav-menu">
+        <div
+          class="flex flex-col lg:flex-row space-y-2 lg:space-y-0 lg:space-x-4"
+        >
+          {% if current_user.is_faculty() %}
+          <a href="{{ url_for('main.dashboard') }}" class="nav-link-custom">
+            <i class="fas fa-home mr-2"></i>Dashboard
+          </a>
+          <a
+            href="{{ url_for('main.faculty_timetable_view') }}"
+            class="nav-link-custom active"
+          >
+            <i class="fas fa-calendar-alt mr-2"></i>My Timetable
+          </a>
+          <a
+            href="{{ url_for('main.view_voting_timetables') }}"
+            class="nav-link-custom"
+          >
+            <i class="fas fa-vote-yea mr-2"></i>Vote
+          </a>
+          <a
+            href="{{ url_for('main.get_published_timetable') }}"
+            class="nav-link-custom"
+          >
+            <i class="fas fa-file-alt mr-2"></i>Published
+          </a>
+          {% endif %}
+        </div>
+
+        <!-- User Dropdown -->
+        <div class="user-dropdown-container">
+          <button class="user-dropdown-btn" onclick="toggleUserDropdown()">
+            <i class="fas fa-user-circle mr-2"></i>
+            {{ current_user.username }}
+            <i class="fas fa-chevron-down ml-2"></i>
+          </button>
+          <div id="user-dropdown" class="user-dropdown-menu">
+            <a
+              href="{{ url_for('main.dashboard') }}"
+              class="dropdown-item-custom"
+            >
+              <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+            </a>
+            <hr class="dropdown-divider" />
+            <a
+              href="{{ url_for('main.logout') }}"
+              class="dropdown-item-custom text-red-400"
+            >
+              <i class="fas fa-sign-out-alt mr-2"></i>Logout
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Faculty data for React -->
+<script>
+  // Pass Django data to JavaScript
+  window.facultyClassesData = {{ faculty_classes | tojson | safe if faculty_classes else '[]' }};
+  window.currentUserData = {
+    username: '{{ current_user.username }}',
+    facultyName: '{{ current_user.faculty.name if current_user.faculty else current_user.username }}',
+    facultySubject: '{{ current_user.faculty.subject if current_user.faculty else "" }}'
+  };
+</script>
+
+<!-- React Root Container -->
+<div id="react-root"></div>
+
+<!-- Enhanced Styles -->
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+
+  * {
+    font-family: "Inter", sans-serif;
+  }
+
+  /* Navigation Styles */
+  .navbar-custom {
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .navbar-brand-custom {
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .navbar-brand-custom:hover {
+    transform: scale(1.05);
+    color: white;
+  }
+
+  .logo-container {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+  }
+
+  .brand-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .mobile-menu-btn {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 30px;
+    height: 30px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .hamburger-line {
+    width: 30px;
+    height: 3px;
+    background: white;
+    transition: all 0.3s ease;
+  }
+
+  .mobile-menu-btn.active .hamburger-line:nth-child(1) {
+    transform: rotate(45deg) translate(7px, 7px);
+  }
+
+  .mobile-menu-btn.active .hamburger-line:nth-child(2) {
+    opacity: 0;
+  }
+
+  .mobile-menu-btn.active .hamburger-line:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -7px);
+  }
+
+  .nav-menu {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+
+  @media (max-width: 1023px) {
+    .nav-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: linear-gradient(
+        135deg,
+        #ff6b35 0%,
+        #6a4c93 50%,
+        #e91e63 100%
+      );
+      flex-direction: column;
+      padding: 2rem;
+      border-radius: 0 0 1rem 1rem;
+      transform: translateY(-100vh);
+      transition: transform 0.3s ease;
+      backdrop-filter: blur(20px);
+    }
+
+    .nav-menu.active {
+      transform: translateY(0);
+    }
+  }
+
+  .nav-link-custom {
+    color: white;
+    text-decoration: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .nav-link-custom:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    color: white;
+  }
+
+  .nav-link-custom.active {
+    background: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  .user-dropdown-container {
+    position: relative;
+  }
+
+  .user-dropdown-btn {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+  }
+
+  .user-dropdown-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .user-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    padding: 0.5rem 0;
+    min-width: 200px;
+    transform: translateY(10px);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1000;
+  }
+
+  .user-dropdown-menu.active {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .dropdown-item-custom {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    color: #374151;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .dropdown-item-custom:hover {
+    background: #f3f4f6;
+    transform: translateX(5px);
+    color: #1f2937;
+  }
+
+  .dropdown-divider {
+    margin: 0.5rem 0;
+    border: none;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  /* Animation Keyframes */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-50px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes bounceIn {
+    0% {
+      opacity: 0;
+      transform: scale(0.3);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes pulseGlow {
+    0%,
+    100% {
+      box-shadow: 0 0 20px rgba(255, 107, 53, 0.3);
+    }
+    50% {
+      box-shadow: 0 0 40px rgba(255, 107, 53, 0.6);
+    }
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  /* Enhanced Card Styles */
+  .card-gradient {
+    background: linear-gradient(135deg, #ff6b35 0%, #f4a261 100%);
+  }
+
+  .card-gradient-purple {
+    background: linear-gradient(135deg, #6a4c93 0%, #b39ddb 100%);
+  }
+
+  .card-gradient-pink {
+    background: linear-gradient(135deg, #e91e63 0%, #ff7f7f 100%);
+  }
+
+  .card-gradient-yellow {
+    background: linear-gradient(135deg, #ffd23f 0%, #ff8a65 100%);
+  }
+
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+</style>
+
+<!-- React Component Script -->
+<script type="text/babel">
+  const { useState, useEffect } = React;
+
+  // Enhanced Timetable Component
+  const EnhancedTimetable = () => {
+    const [currentTime, setCurrentTime] = useState(new Date());
+    const [activeDay, setActiveDay] = useState("Monday");
+    const [animationKey, setAnimationKey] = useState(0);
+
+    // Get faculty data from global variables
+    const facultyClasses = window.facultyClassesData || [];
+    const currentUser = window.currentUserData || {};
+
+    const facultySchedule = {};
+
+    // Build faculty schedule from data
+    facultyClasses.forEach((cls) => {
+      if (!facultySchedule[cls.day]) {
+        facultySchedule[cls.day] = {};
+      }
+      facultySchedule[cls.day][cls.slot] = {
+        subject: cls.subject,
+        classroom: cls.classroom,
+      };
+    });
+
+    useEffect(() => {
+      const timer = setInterval(() => {
+        setCurrentTime(new Date());
+      }, 1000);
+
+      // Trigger re-animation every 5 seconds
+      const animTimer = setInterval(() => {
+        setAnimationKey((prev) => prev + 1);
+      }, 5000);
+
+      return () => {
+        clearInterval(timer);
+        clearInterval(animTimer);
+      };
+    }, []);
+
+    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+    const slots = ["Slot 1", "Slot 2", "Slot 3", "Slot 4", "Slot 5", "Slot 6"];
+    const timeSlots = [
+      "8:00-9:00",
+      "9:00-10:00",
+      "10:00-11:00",
+      "11:00-12:00",
+      "12:00-1:00",
+      "1:00-2:00",
+    ];
+
+    const StatCard = ({ title, value, icon, gradient, delay }) => {
+      const cardStyle = {
+        animationDelay: `${delay}ms`,
+      };
+
+      return (
+        <div
+          className={`${gradient} p-6 rounded-2xl text-white shadow-2xl transform transition-all duration-300 hover:scale-105 animate-fade-in-up glass-effect`}
+          style={cardStyle}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-white/80 text-sm font-medium">{title}</p>
+              <p
+                className="text-3xl font-bold mt-2 animate-bounce-in"
+                key={animationKey}
+              >
+                {value}
+              </p>
+            </div>
+            <div className="text-4xl opacity-70 animate-float">{icon}</div>
+          </div>
+        </div>
+      );
+    };
+
+    const TimeSlotCell = ({ day, slot, slotIndex, hasClass, classData }) => {
+      const cellStyle = {
+        animationDelay: `${days.indexOf(day) * 100 + slotIndex * 50}ms`,
+      };
+
+      return (
+        <div
+          className={`
+            min-h-[80px] p-3 rounded-xl border-2 transition-all duration-300 hover:scale-105
+            ${
+              hasClass
+                ? "bg-gradient-to-br from-emerald-400 to-emerald-600 border-emerald-500 text-white shadow-lg"
+                : "bg-gradient-to-br from-gray-100 to-gray-200 border-gray-300 border-dashed"
+            }
+          `}
+          style={cellStyle}
+        >
+          {hasClass ? (
+            <div className="text-center animate-bounce-in">
+              <div className="font-bold text-lg mb-2 flex items-center justify-center">
+                <span className="mr-2">📚</span>
+                {classData.subject}
+              </div>
+              <div className="bg-white/20 rounded-lg px-3 py-1 text-sm font-semibold backdrop-blur-sm">
+                <span className="mr-1">🏫</span>
+                {classData.classroom}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center text-gray-500 animate-pulse">
+              <div className="text-2xl mb-1">💤</div>
+              <div className="text-sm font-medium">Free Period</div>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-purple-50 to-pink-50 p-6">
+        {/* Header Section */}
+        <div className="max-w-7xl mx-auto">
+          {/* Breadcrumb */}
+          <nav className="mb-6 animate-slide-in-left">
+            <div className="bg-white/60 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-lg border border-white/20">
+              <div className="flex items-center space-x-2 text-gray-600">
+                <a
+                  href="/dashboard"
+                  class="hover:text-vibrant-orange transition-colors"
+                >
+                  <i class="fas fa-home mr-1"></i>Dashboard
+                </a>
+                <span class="text-gray-400">›</span>
+                <span class="text-gray-800 font-semibold">
+                  Enhanced Timetable View
+                </span>
+              </div>
+            </div>
+          </nav>
+
+          {/* Main Title */}
+          <div className="text-center mb-8 animate-fade-in-up">
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-vibrant-orange via-deep-purple to-soft-pink bg-clip-text text-transparent mb-4">
+              📅 Enhanced Timetable View
+            </h1>
+            <p className="text-gray-600 text-lg">
+              Current time:{" "}
+              <span className="font-semibold text-deep-purple">
+                {currentTime.toLocaleTimeString()}
+              </span>
+            </p>
+          </div>
+
+          {/* Faculty Info Banner */}
+          <div className="card-gradient-purple p-6 rounded-2xl text-white mb-8 shadow-2xl animate-fade-in-up glass-effect">
+            <div className="flex items-center">
+              <div className="text-4xl mr-4 animate-bounce">👨‍🏫</div>
+              <div>
+                <h3 className="text-xl font-bold">Faculty View</h3>
+                <p className="text-white/80">
+                  Your classes are highlighted in green. View your complete
+                  schedule below.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Statistics Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <StatCard
+              title="Total Classes"
+              value={facultyClasses.length}
+              icon="📚"
+              gradient="card-gradient"
+              delay={0}
+            />
+            <StatCard
+              title="Free Periods"
+              value={30 - facultyClasses.length}
+              icon="💤"
+              gradient="card-gradient-purple"
+              delay={100}
+            />
+            <StatCard
+              title="Daily Average"
+              value={(facultyClasses.length / 5).toFixed(1)}
+              icon="📊"
+              gradient="card-gradient-pink"
+              delay={200}
+            />
+            <StatCard
+              title="Current Day"
+              value={new Date().toLocaleDateString("en", { weekday: "short" })}
+              icon="📅"
+              gradient="card-gradient-yellow"
+              delay={300}
+            />
+          </div>
+
+          {/* Day Selector */}
+          <div className="flex justify-center mb-8 animate-fade-in-up">
+            <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-2 shadow-lg border border-white/20">
+              <div className="flex space-x-2">
+                {days.map((day, index) => {
+                  const buttonStyle = {
+                    animationDelay: `${index * 50}ms`,
+                  };
+
+                  return (
+                    <button
+                      key={day}
+                      onClick={() => setActiveDay(day)}
+                      className={`
+                        px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105
+                        ${
+                          activeDay === day
+                            ? "bg-gradient-to-r from-vibrant-orange to-deep-purple text-white shadow-lg"
+                            : "text-gray-600 hover:bg-white/50"
+                        }
+                      `}
+                      style={buttonStyle}
+                    >
+                      {day.slice(0, 3)}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Weekly Timetable Grid */}
+          <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-white/20 animate-fade-in-up">
+            <div className="mb-6 text-center">
+              <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                🎓 {currentUser.facultyName}'s Weekly Timetable
+              </h2>
+              {currentUser.facultySubject && (
+                <p className="text-bright-yellow font-semibold bg-deep-purple/10 rounded-full px-4 py-2 inline-block">
+                  Subject: {currentUser.facultySubject}
+                </p>
+              )}
+            </div>
+
+            {/* Timetable Grid */}
+            <div className="overflow-x-auto">
+              <div className="min-w-full">
+                {/* Header */}
+                <div className="grid grid-cols-7 gap-4 mb-4">
+                  <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white p-4 rounded-xl font-bold text-center shadow-lg">
+                    Day / Time
+                  </div>
+                  {slots.map((slot, index) => {
+                    const headerStyle = {
+                      animationDelay: `${index * 100}ms`,
+                    };
+
+                    return (
+                      <div
+                        key={slot}
+                        className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white p-4 rounded-xl text-center shadow-lg animate-fade-in-up"
+                        style={headerStyle}
+                      >
+                        <div className="font-bold text-lg">{slot}</div>
+                        <div className="text-sm opacity-90">
+                          {timeSlots[index]}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Timetable Rows */}
+                {days.map((day, dayIndex) => (
+                  <div
+                    key={day}
+                    className={`grid grid-cols-7 gap-4 mb-4 transition-all duration-300 ${
+                      activeDay === day ? "scale-105 shadow-2xl" : ""
+                    }`}
+                  >
+                    {/* Day Header */}
+                    <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white p-4 rounded-xl font-bold text-center shadow-lg">
+                      <div className="text-lg">{day}</div>
+                      <div className="text-sm opacity-90">
+                        {day === "Monday" && "MON"}
+                        {day === "Tuesday" && "TUE"}
+                        {day === "Wednesday" && "WED"}
+                        {day === "Thursday" && "THU"}
+                        {day === "Friday" && "FRI"}
+                      </div>
+                    </div>
+
+                    {/* Time Slots */}
+                    {slots.map((slot, slotIndex) => {
+                      const hasClass =
+                        facultySchedule[day] && facultySchedule[day][slot];
+                      const classData = hasClass
+                        ? facultySchedule[day][slot]
+                        : null;
+
+                      return (
+                        <TimeSlotCell
+                          key={`${day}-${slot}`}
+                          day={day}
+                          slot={slot}
+                          slotIndex={slotIndex}
+                          hasClass={hasClass}
+                          classData={classData}
+                        />
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Summary Statistics */}
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="text-center p-6 bg-gradient-to-br from-blue-400 to-blue-600 text-white rounded-2xl shadow-lg">
+                <h4 className="font-semibold text-lg mb-2">📚 Total Classes</h4>
+                <p className="text-3xl font-bold">{facultyClasses.length}</p>
+              </div>
+              <div className="text-center p-6 bg-gradient-to-br from-green-400 to-green-600 text-white rounded-2xl shadow-lg">
+                <h4 className="font-semibold text-lg mb-2">💤 Free Periods</h4>
+                <p className="text-3xl font-bold">
+                  {30 - facultyClasses.length}
+                </p>
+              </div>
+              <div className="text-center p-6 bg-gradient-to-br from-purple-400 to-purple-600 text-white rounded-2xl shadow-lg">
+                <h4 className="font-semibold text-lg mb-2">📊 Daily Average</h4>
+                <p className="text-3xl font-bold">
+                  {(facultyClasses.length / 5).toFixed(1)}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Render the React component
+  ReactDOM.render(<EnhancedTimetable />, document.getElementById("react-root"));
+</script>
+
+<script>
+  // Mobile menu toggle
+  document
+    .getElementById("mobile-menu-btn")
+    .addEventListener("click", function () {
+      this.classList.toggle("active");
+      document.getElementById("nav-menu").classList.toggle("active");
+    });
+
+  // User dropdown toggle
+  function toggleUserDropdown() {
+    const dropdown = document.getElementById("user-dropdown");
+    dropdown.classList.toggle("active");
+  }
+
+  // Close dropdown when clicking outside
+  document.addEventListener("click", function (event) {
+    const dropdown = document.getElementById("user-dropdown");
+    const button = document.querySelector(".user-dropdown-btn");
+
+    if (!dropdown.contains(event.target) && !button.contains(event.target)) {
+      dropdown.classList.remove("active");
+    }
+  });
+
+  // Close mobile menu when clicking outside
+  document.addEventListener("click", function (event) {
+    const menu = document.getElementById("nav-menu");
+    const button = document.getElementById("mobile-menu-btn");
+
+    if (!menu.contains(event.target) && !button.contains(event.target)) {
+      menu.classList.remove("active");
+      button.classList.remove("active");
+    }
+  });
+</script>
+
+{% endblock %}
+<!-- ===== Chart.js Script ===== -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    {% if current_user.is_faculty() %}
+    const ctx = document.getElementById('scheduleChart');
+    if (ctx) {
+      const days = ['Mon','Tue','Wed','Thu','Fri'];
+      const classCounts = [];
+
+      {% for day in ['Monday','Tuesday','Wednesday','Thursday','Friday'] %}
+      classCounts.push({{ faculty_classes | selectattr('day','equalto',day) | list | length }});
+      {% endfor %}
+
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: days,
+          datasets: [{
+            label: 'Classes per Day',
+            data: classCounts,
+            backgroundColor: 'rgba(40,167,69,0.8)',
+            borderColor: '#007bff',
+            borderWidth: 2,
+            hoverBackgroundColor: 'rgba(40,167,69,1)',
+            hoverBorderColor: '#0056b3'
+          }]
+        },
+        options: {
+          responsive: true,
+          animation: { duration: 1200, easing: 'easeOutQuart' },
+          scales: {
+            y: { beginAtZero: true, max: 6, ticks: { color: '#007bff' } },
+            x: { ticks: { color: '#007bff' } }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+    {% endif %}
+  });
+</script>
+
+{% endblock %}

@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Class Scheduler - Login</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: linear-gradient(
+          135deg,
+          #8b7ba8 0%,
+          #c9a89e 50%,
+          #d4b5a0 100%
+        );
+        background-size: 400% 400%;
+        animation: gradientShift 15s ease infinite;
+        color: #333;
+        font-family: "Fredoka", sans-serif;
+        overflow: hidden;
+        margin: 0;
+        padding: 0;
+        position: relative;
+      }
+
+      body::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="2" fill="white" fill-opacity="0.1"/><circle cx="75" cy="75" r="1.5" fill="white" fill-opacity="0.08"/><circle cx="50" cy="10" r="1" fill="white" fill-opacity="0.12"/><circle cx="10" cy="50" r="1.2" fill="white" fill-opacity="0.09"/><circle cx="90" cy="30" r="0.8" fill="white" fill-opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        backdrop-filter: blur(20px);
+        z-index: -1;
+      }
+
+      @keyframes gradientShift {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      .animation-container {
+        position: relative;
+        width: 800px;
+        height: 600px;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 25px;
+        box-shadow:
+          0 20px 60px rgba(0, 0, 0, 0.2),
+          0 0 40px rgba(255, 255, 255, 0.1) inset;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .character {
+        position: absolute;
+        width: 80px;
+        height: 80px;
+        background-color: #b39cd0;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 40px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        z-index: 2;
+        will-change: transform;
+        opacity: 0;
+      }
+
+      .character.admin {
+        background-color: #f7c6a2;
+      }
+      .character.teacher {
+        background-color: #6badc6;
+      }
+      .character.student {
+        background-color: #b2dfff;
+      }
+
+      .character span {
+        transform: translateY(5px);
+      }
+
+      .mascot {
+        position: absolute;
+        width: 100px;
+        height: 100px;
+        background-color: #fdfd96;
+        border-radius: 50%;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        font-size: 50px;
+        z-index: 3;
+        box-shadow: 0 5px 20px rgba(253, 253, 150, 0.8);
+        will-change: transform, opacity;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      .signup-form {
+        position: absolute;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 40px;
+        z-index: 5;
+        width: 90%;
+        max-width: 450px;
+        will-change: opacity, transform;
+        opacity: 0;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(15px);
+        border: 1.5px solid rgba(200, 200, 200, 0.3);
+        border-radius: 20px;
+        box-shadow:
+          0 15px 35px rgba(0, 0, 0, 0.15),
+          0 0 20px rgba(255, 255, 255, 0.3) inset;
+      }
+
+      .signup-form h1 {
+        font-size: 2.5rem;
+        margin-bottom: 12px;
+        font-weight: 700;
+        color: #2c3e50;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: 0.5px;
+      }
+
+      .signup-form p {
+        font-size: 1.1rem;
+        opacity: 0.85;
+        margin-bottom: 35px;
+        color: #555555;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        font-weight: 500;
+        letter-spacing: 0.3px;
+      }
+
+      .input-group {
+        position: relative;
+        width: 100%;
+        margin-bottom: 25px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .input-group label {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        letter-spacing: 0.5px;
+        text-transform: capitalize;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .signup-form input {
+        width: 100%;
+        padding: 16px 18px;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        border: 2px solid rgba(200, 200, 200, 0.4);
+        border-radius: 14px;
+        color: #1a1a1a;
+        font-size: 1.05rem;
+        font-weight: 500;
+        letter-spacing: 0.3px;
+        box-sizing: border-box;
+        padding-right: 50px;
+        transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        box-shadow:
+          0 8px 20px rgba(0, 0, 0, 0.12),
+          inset 0 1px 2px rgba(255, 255, 255, 0.5);
+      }
+
+      .signup-form input::placeholder {
+        color: #888888;
+        font-weight: 400;
+      }
+
+      .signup-form input:hover {
+        background: rgba(255, 255, 255, 0.92);
+        border-color: rgba(150, 150, 150, 0.5);
+        box-shadow:
+          0 10px 25px rgba(0, 0, 0, 0.15),
+          inset 0 1px 2px rgba(255, 255, 255, 0.6);
+      }
+
+      .signup-form input:focus {
+        outline: none;
+        border-color: rgba(100, 100, 100, 0.7);
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow:
+          0 15px 35px rgba(0, 0, 0, 0.15),
+          inset 0 1px 3px rgba(255, 255, 255, 0.6),
+          0 0 20px rgba(150, 150, 150, 0.2);
+        transform: translateY(-2px);
+      }
+
+      .signup-form input:focus::placeholder {
+        color: #999999;
+      }
+
+      .toggle-password {
+        position: absolute;
+        right: 18px;
+        top: 52px;
+        cursor: pointer;
+        color: rgba(255, 255, 255, 0.75);
+        font-size: 1.1rem;
+        transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        user-select: none;
+      }
+
+      .toggle-password:hover {
+        color: rgba(255, 255, 255, 0.95);
+        transform: scale(1.15);
+      }
+
+      .toggle-password:active {
+        transform: scale(0.95);
+      }
+
+      .signup-form button {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(
+          135deg,
+          #7a5f8f 0%,
+          #8b7ba8 50%,
+          #9a8ba8 100%
+        );
+        background-size: 200% 200%;
+        border: none;
+        border-radius: 14px;
+        color: white;
+        font-size: 1.2rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        box-sizing: border-box;
+        margin-top: 20px;
+        box-shadow:
+          0 8px 25px rgba(122, 95, 143, 0.3),
+          inset 0 1px 3px rgba(255, 255, 255, 0.2);
+        border: 1.5px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        letter-spacing: 0.5px;
+      }
+
+      .signup-form button:hover {
+        transform: translateY(-3px);
+        box-shadow:
+          0 12px 35px rgba(122, 95, 143, 0.4),
+          inset 0 1px 3px rgba(255, 255, 255, 0.3);
+        background-position: 200% 0%;
+        border-color: rgba(255, 255, 255, 0.3);
+      }
+
+      .signup-form button:active {
+        transform: translateY(-1px);
+        box-shadow:
+          0 6px 20px rgba(122, 95, 143, 0.3),
+          inset 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      .signup-form button:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .maze-path {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        z-index: 1;
+      }
+
+      /* Dark mode toggle in top corner */
+      .dark-mode-toggle {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        color: white;
+        font-size: 1.2rem;
+      }
+
+      .dark-mode-toggle:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.1) rotate(15deg);
+      }
+
+      /* Dark mode styles */
+      body.dark {
+        background: linear-gradient(
+          135deg,
+          #1f2937 0%,
+          #374151 50%,
+          #4b5563 100%
+        );
+      }
+
+      body.dark .animation-container {
+        background: rgba(31, 41, 55, 0.8);
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+
+      body.dark .signup-form {
+        background: rgba(31, 41, 55, 0.9);
+      }
+
+      body.dark .signup-form h1 {
+        background: linear-gradient(135deg, #e5e7eb 0%, #f3f4f6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 900px) {
+        .animation-container {
+          width: 90vw;
+          height: 70vh;
+          max-width: 800px;
+          max-height: 600px;
+        }
+      }
+
+      @media (max-height: 700px) {
+        .animation-container {
+          height: 90vh;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Dark Mode Toggle -->
+    <button
+      class="dark-mode-toggle"
+      id="darkModeToggle"
+      title="Toggle dark mode"
+    >
+      🌙
+    </button>
+
+    <div class="animation-container">
+      <svg
+        class="maze-path"
+        viewBox="0 0 800 600"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          id="tangledPath"
+          d="M100 200 C300 50, 500 450, 700 300 C500 200, 300 550, 150 400"
+          stroke="#B39CD0"
+          stroke-width="2"
+          stroke-dasharray="10"
+          opacity="0.3"
+        />
+      </svg>
+      <div class="character admin"><span>👨‍💼</span></div>
+      <div class="character teacher"><span>👩‍🏫</span></div>
+      <div class="character student"><span>🧑‍🎓</span></div>
+      <div class="mascot">✨</div>
+      <form
+        class="signup-form"
+        method="POST"
+        action="{{ url_for('main.login') }}"
+      >
+        <h1>Class Scheduler</h1>
+        <p>Automated timetable generation and voting system.</p>
+        <div class="input-group">
+          <label for="username"
+            ><i class="fas fa-user" style="font-size: 1.1rem"></i
+            >Username</label
+          >
+          <input
+            type="text"
+            id="username"
+            name="username"
+            placeholder="Enter your username"
+            required
+          />
+        </div>
+        <div class="input-group">
+          <label for="password"
+            ><i class="fas fa-lock" style="font-size: 1.1rem"></i
+            >Password</label
+          >
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Enter your password"
+            required
+          />
+          <span class="toggle-password" onclick="togglePasswordVisibility()">
+            <i id="password-toggle-icon" class="fas fa-eye"></i>
+          </span>
+        </div>
+        <button type="submit">Login</button>
+      </form>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.3/gsap.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const characters = document.querySelectorAll(".character");
+        const mascot = document.querySelector(".mascot");
+        const signupForm = document.querySelector(".signup-form");
+        const mazePath = document.getElementById("tangledPath");
+        const container = document.querySelector(".animation-container");
+
+        // Get container dimensions for proper centering
+        const containerWidth = container.clientWidth;
+        const containerHeight = container.clientHeight;
+
+        // Initial setup - position characters relative to container center
+        gsap.set(characters, {
+          left: "10%",
+          top: (i) => `${20 + i * 25}%`,
+          opacity: 1,
+        });
+
+        const tl = gsap.timeline({
+          defaults: { duration: 1, ease: "power2.inOut" },
+        });
+
+        // Phase 1: Characters move chaotically
+        tl.to(characters, {
+          left: "70%",
+          top: (i) => `${30 + i * 15}%`,
+          stagger: {
+            each: 0.5,
+            from: "random",
+            yoyo: true,
+            repeat: 1,
+          },
+          duration: 2,
+          ease: "power1.inOut",
+        });
+
+        // Phase 2: Mascot appears and sorts the path
+        tl.to(
+          characters,
+          {
+            opacity: 0.5,
+            duration: 0.5,
+          },
+          "-=0.5",
+        );
+
+        tl.fromTo(
+          mascot,
+          {
+            scale: 0,
+            opacity: 0,
+            display: "flex",
+          },
+          {
+            scale: 1,
+            opacity: 1,
+            duration: 1,
+            ease: "back.out(1.7)",
+          },
+          "<",
+        );
+
+        // Phase 3: Characters move to organized positions
+        tl.to(characters, {
+          left: "40%",
+          top: (i) => `${35 + i * 10}%`,
+          opacity: 1,
+          duration: 1.5,
+          ease: "power2.inOut",
+        });
+
+        // Characters give high-fives by moving closer to center
+        tl.to(characters, {
+          left: "45%",
+          stagger: 0.2,
+          duration: 0.5,
+        });
+
+        tl.to(characters, {
+          left: "50%",
+          top: "50%",
+          stagger: 0.2,
+          duration: 1.5,
+          ease: "power3.inOut",
+        });
+
+        // Phase 4: Fade out characters and show form
+        tl.to(
+          characters,
+          {
+            opacity: 0,
+            scale: 0.8,
+            duration: 0.8,
+          },
+          "+=0.5",
+        );
+
+        tl.to(
+          mascot,
+          {
+            opacity: 0,
+            scale: 0.8,
+            duration: 0.8,
+          },
+          "<",
+        );
+
+        tl.fromTo(
+          signupForm,
+          {
+            opacity: 0,
+            scale: 0.9,
+            display: "flex",
+          },
+          {
+            opacity: 1,
+            scale: 1,
+            duration: 1,
+            ease: "power3.out",
+          },
+          "-=0.2",
+        );
+
+        // Dark mode functionality
+        const darkModeToggle = document.getElementById("darkModeToggle");
+        const body = document.body;
+
+        // Check for saved theme preference or default to light mode
+        const currentTheme = localStorage.getItem("theme") || "light";
+        if (currentTheme === "dark") {
+          body.classList.add("dark");
+          darkModeToggle.textContent = "☀️";
+        }
+
+        darkModeToggle.addEventListener("click", () => {
+          body.classList.toggle("dark");
+
+          if (body.classList.contains("dark")) {
+            localStorage.setItem("theme", "dark");
+            darkModeToggle.textContent = "☀️";
+          } else {
+            localStorage.setItem("theme", "light");
+            darkModeToggle.textContent = "🌙";
+          }
+        });
+
+        // Password visibility toggle function
+        window.togglePasswordVisibility = function () {
+          const passwordField = document.getElementById("password");
+          const passwordToggleIcon = document.getElementById(
+            "password-toggle-icon",
+          );
+          if (passwordField.type === "password") {
+            passwordField.type = "text";
+            passwordToggleIcon.classList.remove("fa-eye");
+            passwordToggleIcon.classList.add("fa-eye-slash");
+          } else {
+            passwordField.type = "password";
+            passwordToggleIcon.classList.remove("fa-eye-slash");
+            passwordToggleIcon.classList.add("fa-eye");
+          }
+        };
+      });
+    </script>
+  </body>
+</html>

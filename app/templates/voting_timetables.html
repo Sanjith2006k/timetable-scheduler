@@ -1,0 +1,567 @@
+{% extends "base.html" %}
+
+{% block title %}Timetable Voting{% endblock %}
+
+{% block content %}
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "custom-purple": "#B39CD0",
+          "custom-pink": "#F1BBBA",
+          "custom-orange": "#F7C6A2",
+          "custom-yellow": "#FDFD96",
+          "custom-peach": "#F5D7B7",
+          "custom-light-blue": "#B2DFFF",
+          "custom-teal": "#6BADC6",
+        },
+      },
+    },
+  };
+</script>
+
+<!-- Enhanced styles matching dashboard theme -->
+<style>
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-50px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .animate-on-load {
+    animation: fadeInUp 0.8s ease-out;
+  }
+
+  .animate-slide-left {
+    animation: slideInLeft 0.6s ease-out;
+  }
+
+  .card-hover {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-hover:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-animated {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .btn-animated:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  .dark-mode-toggle {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark-mode-toggle:hover {
+    transform: scale(1.1) rotate(15deg);
+  }
+
+  /* ...existing styles... */
+  .subject-block {
+    background: var(--subject-bg-color, #f1f5f9);
+    color: #374151;
+    margin: 4px;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    border: 1px solid rgba(179, 156, 208, 0.3);
+    box-shadow: 0 2px 8px rgba(179, 156, 208, 0.15);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .subject-block:hover {
+    transform: translateY(-2px) scale(1.02);
+    border-color: rgba(179, 156, 208, 0.5);
+    z-index: 10;
+  }
+
+  .my-subject {
+    background: #B39CD0 !important;
+    color: #fff !important;
+    border: 2px solid #F1BBBA !important;
+    box-shadow: 0 4px 20px rgba(179, 156, 208, 0.4) !important;
+    font-weight: bold !important;
+  }
+
+  .timetable-card {
+    animation: fadeInUp 0.8s ease-out forwards;
+    opacity: 0;
+    transform: translateY(30px);
+    backdrop-filter: blur(10px);
+  }
+
+  @keyframes fadeInUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Menu styles */
+  #slideMenu {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+  }
+
+  #slideMenu.menu-open {
+    transform: translateX(0);
+  }
+</style>
+
+<!-- Navigation Menu with dark mode support -->
+<div id="menuOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden transition-opacity duration-300"></div>
+
+<nav id="slideMenu" class="fixed top-0 left-0 h-full w-80 bg-custom-purple dark:bg-gray-800 text-white transform -translate-x-full transition-all duration-300 ease-in-out z-50 shadow-2xl">
+    <div class="p-6">
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="text-2xl font-bold">📋 Navigation</h2>
+            <div class="flex items-center gap-3">
+                <!-- Dark Mode Toggle in Menu -->
+                <button
+                  id="menuDarkModeToggle"
+                  class="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all duration-300 dark-mode-toggle"
+                  title="Toggle dark mode"
+                >
+                  <span class="text-yellow-400 text-lg">🌙</span>
+                </button>
+                <button id="closeMenu" class="text-white hover:text-gray-300 transition-colors duration-200">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <ul class="space-y-4">
+            <li>
+                <a href="{{ url_for('main.dashboard') }}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-white/10 transition-all duration-200 transform hover:scale-105">
+                    <span class="text-xl">🏠</span>
+                    <span class="font-medium">Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <button onclick="scrollToSection('voting-header')" class="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-white/10 transition-all duration-200 transform hover:scale-105 text-left">
+                    <span class="text-xl">🗳️</span>
+                    <span class="font-medium">Voting Section</span>
+                </button>
+            </li>
+            <li>
+                <button onclick="scrollToSection('timetables-section')" class="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-white/10 transition-all duration-200 transform hover:scale-105 text-left">
+                    <span class="text-xl">📅</span>
+                    <span class="font-medium">Timetables</span>
+                </button>
+            </li>
+            {% if current_user.is_scheduler() %}
+            <li>
+                <a href="{{ url_for('main.generate_timetables_view') }}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-white/10 transition-all duration-200 transform hover:scale-105">
+                    <span class="text-xl">⚙️</span>
+                    <span class="font-medium">Generate New</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('main.get_published_timetable') }}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-white/10 transition-all duration-200 transform hover:scale-105">
+                    <span class="text-xl">📊</span>
+                    <span class="font-medium">Published Timetable</span>
+                </a>
+            </li>
+            {% endif %}
+            {% if current_user.is_faculty() %}
+            <li>
+                <a href="{{ url_for('main.faculty_timetable_view') }}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-white/10 transition-all duration-200 transform hover:scale-105">
+                    <span class="text-xl">👨‍🏫</span>
+                    <span class="font-medium">My Timetable</span>
+                </a>
+            </li>
+            {% endif %}
+            <li class="border-t border-white/20 pt-4 mt-4">
+                <a href="{{ url_for('main.logout') }}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-red-500/20 text-red-200 hover:text-red-100 transition-all duration-200 transform hover:scale-105">
+                    <span class="text-xl">🚪</span>
+                    <span class="font-medium">Logout</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<!-- Menu Button with dark mode toggle -->
+<div class="fixed top-4 left-4 z-30 flex gap-3">
+    <button id="menuButton" class="bg-custom-purple text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 btn-animated">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+    </button>
+    <button
+      id="darkModeToggle"
+      class="p-3 rounded-full bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 transition-all duration-300 dark-mode-toggle shadow-lg"
+      title="Toggle dark mode"
+    >
+      <span class="text-gray-600 dark:text-yellow-400 text-lg">🌙</span>
+    </button>
+</div>
+
+<div class="container mx-auto mt-2 px-4 bg-gray-100 dark:bg-gray-900 text-slate-700 dark:text-gray-300 min-h-screen transition-colors duration-300">
+    <h2 id="voting-header" class="text-4xl font-extrabold text-center mb-6 bg-gradient-to-r from-custom-purple via-custom-pink to-custom-orange bg-clip-text text-transparent animate-slide-left">🗳 Timetable Voting</h2>
+    
+    {% if current_user.is_scheduler() %}
+        <div class="bg-custom-purple dark:bg-gray-800 border-2 border-custom-pink text-white p-6 rounded-xl mb-6 shadow-xl transition-colors duration-300 animate-on-load">
+            <strong class="text-lg">🎯 Scheduler View:</strong> You can see the vote counts and end the voting session when ready.
+        </div>
+        
+        {% if timetables %}
+            <div class="flex items-center justify-between p-6 bg-custom-purple dark:bg-gray-800 rounded-xl mb-6 shadow-xl border-2 border-custom-pink transition-colors duration-300">
+                <div class="flex items-center space-x-4">
+                    <h4 class="text-2xl font-bold text-white">📊 Vote Summary</h4>
+                    <p class="text-xl text-white"><strong>Total Votes Cast:</strong> {{ timetables|sum(attribute='vote_count') }}</p>
+                </div>
+                <form method="POST" action="{{ url_for('main.end_voting') }}" class="inline-block">
+                    <button type="submit" class="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg btn-animated">
+                        🏁 End Voting Session
+                    </button>
+                </form>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="bg-custom-purple dark:bg-gray-800 border-2 border-custom-pink text-white p-6 rounded-xl mb-6 shadow-xl transition-colors duration-300 animate-on-load">
+            <strong class="text-lg">🗳 Faculty Voting:</strong> Please review the timetable options below and vote for your preferred option.
+            {% if user_vote %}
+                <br><strong>Your Vote:</strong> You have voted for Timetable Option {{ user_vote.timetable.version if user_vote.timetable else 'Unknown' }}
+                <br><small class="text-custom-yellow">You can change your vote by clicking on a different option.</small>
+            {% else %}
+                <br><small class="text-custom-yellow">You haven't voted yet.</small>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    {% if not timetables %}
+        <div class="bg-custom-orange dark:bg-gray-800 border-2 border-custom-yellow text-white p-6 rounded-xl mb-6 shadow-xl transition-colors duration-300">
+            <h4 class="text-2xl font-bold">📅 No Active Voting Session</h4>
+            <p class="text-lg">There are currently no timetables available for voting.</p>
+            {% if current_user.is_scheduler() %}
+                <a href="{{ url_for('main.generate_timetables_view') }}" class="mt-4 inline-block bg-custom-purple hover:bg-custom-pink text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg btn-animated">🚀 Generate New Timetables</a>
+            {% endif %}
+        </div>
+    {% else %}
+        {% for timetable in timetables %}
+        <div id="timetables-section" class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl mb-8 p-6 mt-6 {% if user_vote and user_vote.timetable_id == timetable.id %}border-4 border-custom-purple shadow-custom-purple/50{% endif %} transition-all duration-300 transform hover:scale-[1.01] timetable-card border-2 border-custom-pink" style="animation-delay: {{ loop.index * 0.2 }}s">
+            <div class="flex justify-between items-center mb-6 border-b pb-4 border-custom-pink">
+                <h5 class="text-2xl font-bold text-gray-800 dark:text-gray-200">📋 {{ timetable.name }}</h5>
+                <div class="flex items-center space-x-3">
+                    <span class="bg-custom-purple text-white text-lg font-semibold px-4 py-2 rounded-full shadow-lg">
+                        🗳 {{ timetable.vote_count }} votes
+                    </span>
+                    {% if user_vote and user_vote.timetable_id == timetable.id %}
+                        <span class="bg-custom-orange text-white text-lg font-semibold px-4 py-2 rounded-full shadow-lg">
+                            ✅ Your Vote
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if current_user.is_faculty() %}
+                <div class="mb-6">
+                    <form method="POST" action="{{ url_for('main.vote_for_timetable', timetable_id=timetable.id) }}" class="inline-block">
+                        <button type="submit" class="bg-custom-purple hover:bg-custom-pink text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg text-lg btn-animated" {% if user_vote and user_vote.timetable_id == timetable.id %}disabled{% endif %}>
+                            {% if user_vote and user_vote.timetable_id == timetable.id %}
+                                ✅ Voted
+                            {% else %}
+                                🗳 Vote for This Option
+                            {% endif %}
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+
+            <div class="detailed-view">
+                {% for schedule_name, schedule_data in timetable.data.items() %}
+                    <h6 class="text-2xl font-semibold mt-8 mb-4 text-white bg-custom-purple p-3 rounded-lg">📅 {{ schedule_name }}</h6>
+                    <div class="overflow-x-auto rounded-xl shadow-2xl border-2 border-custom-pink">
+                        <table class="min-w-full border-collapse">
+                            <thead class="bg-custom-purple text-white">
+                                <tr>
+                                    <th class="px-6 py-4 text-left font-bold text-lg border-r border-custom-pink">📅 Day / Time</th>
+                                    {% for slot in ['Slot 1', 'Slot 2', 'Slot 3', 'Slot 4', 'Slot 5', 'Slot 6'] %}
+                                    <th class="px-6 py-4 text-center font-bold min-w-[180px] border-r border-custom-pink">
+                                        <div class="text-lg font-bold">⏰ {{ slot }}</div>
+                                        <div class="text-sm text-custom-yellow mt-1">
+                                            {% if slot == 'Slot 1' %}8:00-9:00{% endif %}
+                                            {% if slot == 'Slot 2' %}9:00-10:00{% endif %}
+                                            {% if slot == 'Slot 3' %}10:00-11:00{% endif %}
+                                            {% if slot == 'Slot 4' %}11:00-12:00{% endif %}
+                                            {% if slot == 'Slot 5' %}12:00-1:00{% endif %}
+                                            {% if slot == 'Slot 6' %}1:00-2:00{% endif %}
+                                        </div>
+                                    </th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody class="bg-custom-light-blue dark:bg-gray-700">
+                                {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] %}
+                                <tr class="hover:bg-custom-peach dark:hover:bg-gray-600 transition-all duration-300 border-b border-custom-pink">
+                                    <td class="font-bold bg-custom-purple px-6 py-6 sticky left-0 text-white border-r border-custom-pink min-w-[140px]">
+                                        <div class="text-lg font-bold">📅 {{ day }}</div>
+                                        <div class="text-sm text-custom-yellow mt-1">
+                                            {% if day == 'Monday' %}Mon{% endif %}
+                                            {% if day == 'Tuesday' %}Tue{% endif %}
+                                            {% if day == 'Wednesday' %}Wed{% endif %}
+                                            {% if day == 'Thursday' %}Thu{% endif %}
+                                            {% if day == 'Friday' %}Fri{% endif %}
+                                        </div>
+                                    </td>
+                                    {% for slot in ['Slot 1', 'Slot 2', 'Slot 3', 'Slot 4', 'Slot 5', 'Slot 6'] %}
+                                    <td class="px-4 py-4 align-top text-center text-sm border-r border-custom-pink min-h-[140px] relative">
+                                        {% set classes = schedule_data[day][slot] %}
+                                        {% if classes %}
+                                            <div class="space-y-2">
+                                                {% for class_info in classes %}
+                                                    {% set parts = class_info.split('|') %}
+                                                    {% set is_my_class = current_user.is_faculty() and current_user.faculty and parts|length >= 3 and parts[2].strip() == current_user.faculty.name.strip() %}
+                                                    <div class="p-3 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-[1.05] subject-block {{ 'my-subject' if is_my_class else '' }} border-2" data-subject="{{ parts[0] }}">
+                                                        <div class="font-bold text-md leading-tight text-gray-700 dark:text-gray-200">📚 {{ parts[0] }}</div>
+                                                        <div class="text-sm text-gray-600 dark:text-gray-300 mt-2">
+                                                            <div class="flex items-center justify-center">
+                                                                <span class="bg-white/30 dark:bg-gray-600/30 backdrop-blur-sm text-gray-700 dark:text-gray-200 px-2 py-1 rounded-full text-xs font-medium border border-gray-300 dark:border-gray-500">🏫 {{ parts[1] if parts|length > 1 else 'Room' }}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="text-sm text-center mt-2">
+                                                            {% if parts|length >= 3 %}
+                                                                {% if is_my_class %}
+                                                                    <div class="bg-custom-orange text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg">👨‍🏫 YOU</div>
+                                                                {% else %}
+                                                                    <div class="bg-gray-500/30 dark:bg-gray-400/30 backdrop-blur-sm text-gray-700 dark:text-gray-200 px-2 py-1 rounded-full text-xs font-medium border border-gray-300 dark:border-gray-500">👤 {{ parts[2] }}</div>
+                                                                {% endif %}
+                                                            {% else %}
+                                                                <div class="bg-gray-400 text-white px-2 py-1 rounded-full text-xs">❓ TBD</div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            <div class="p-6 text-center text-custom-purple bg-custom-light-blue dark:bg-gray-600 rounded-xl border-2 border-dashed border-custom-pink">
+                                                <div class="text-lg font-medium">🌅 Free Period</div>
+                                                <div class="text-sm opacity-70">No Classes Scheduled</div>
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<div id="timetable-data" data-timetables="{{ timetables|tojson }}"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const subjectBlocks = document.querySelectorAll('.subject-block:not(.my-subject)');
+    const subjectColors = {};
+    
+    // Dashboard theme color palette - professional and muted
+    const colors = [
+        { bg: '#F7C6A2', text: '#92400e' }, // Custom Orange
+        { bg: '#B39CD0', text: '#5b21b6' }, // Custom Purple  
+        { bg: '#F1BBBA', text: '#b91c1c' }, // Custom Pink
+        { bg: '#FDFD96', text: '#365314' }, // Custom Yellow
+        { bg: '#F5D7B7', text: '#92400e' }, // Custom Peach
+        { bg: '#B2DFFF', text: '#1d4ed8' }, // Custom Light Blue
+        { bg: '#6BADC6', text: '#0f766e' }, // Custom Teal
+        { bg: '#e2e8f0', text: '#475569' }, // Slate Gray
+        { bg: '#f1f5f9', text: '#64748b' }, // Light Slate
+        { bg: '#f3f4f6', text: '#374151' }, // Light Gray
+        { bg: '#fef2f2', text: '#7f1d1d' }, // Muted Red
+        { bg: '#ecfdf5', text: '#065f46' }, // Muted Emerald
+        { bg: '#fef3c7', text: '#92400e' }, // Muted Yellow
+        { bg: '#f9a8d4', text: '#be185d' }, // Muted Pink
+        { bg: '#99f6e4', text: '#0f766e' }, // Muted Teal
+        { bg: '#ddd6fe', text: '#5b21b6' }, // Muted Indigo
+        { bg: '#fed7d7', text: '#c53030' }  // Muted Rose
+    ];
+    let colorIndex = 0;
+
+    subjectBlocks.forEach(block => {
+        const subject = block.getAttribute('data-subject');
+        if (subject) {
+            if (!subjectColors[subject]) {
+                subjectColors[subject] = colors[colorIndex % colors.length];
+                colorIndex++;
+            }
+            const colorScheme = subjectColors[subject];
+            
+            // Apply background and text colors
+            block.style.background = colorScheme.bg;
+            block.style.color = colorScheme.text;
+            
+            // Update text elements within the block to use the theme colors
+            const subjectTitle = block.querySelector('.text-gray-700');
+            const roomInfo = block.querySelector('.text-gray-600');
+            if (subjectTitle) subjectTitle.style.color = colorScheme.text;
+            if (roomInfo) roomInfo.style.color = colorScheme.text;
+            
+            // Enhanced shadow with theme color
+            const hexToRgb = (hex) => {
+                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result ? {
+                    r: parseInt(result[1], 16),
+                    g: parseInt(result[2], 16),
+                    b: parseInt(result[3], 16)
+                } : null;
+            };
+            
+            const rgb = hexToRgb(colorScheme.bg);
+            if (rgb) {
+                block.style.boxShadow = `0 2px 8px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.3)`;
+            }
+        }
+    });
+
+    // Add staggered animation to cards with enhanced timing
+    const timetableCards = document.querySelectorAll(".timetable-card");
+    timetableCards.forEach((card, index) => {
+        card.style.animationDelay = (index * 0.3) + 's';
+        
+        // Add a subtle hover effect to the entire card
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.02) translateY(-5px)';
+            this.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.3)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1) translateY(0)';
+            this.style.boxShadow = '0 10px 20px rgba(0, 0, 0, 0.2)';
+        });
+    });
+
+    // Enhanced hover effects for colored subject blocks
+    subjectBlocks.forEach(block => {
+        let originalBg = '';
+        let originalShadow = '';
+        
+        block.addEventListener('mouseenter', function() {
+            originalBg = this.style.background;
+            originalShadow = this.style.boxShadow;
+            
+            // Enhanced shadow on hover
+            const subject = this.getAttribute('data-subject');
+            if (subject && subjectColors[subject]) {
+                const colorScheme = subjectColors[subject];
+                const hexToRgb = (hex) => {
+                    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                    return result ? {
+                        r: parseInt(result[1], 16),
+                        g: parseInt(result[2], 16),
+                        b: parseInt(result[3], 16)
+                    } : null;
+                };
+                
+                const rgb = hexToRgb(colorScheme.bg);
+                if (rgb) {
+                    this.style.boxShadow = `0 4px 20px rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4), 0 2px 8px rgba(0, 0, 0, 0.1)`;
+                    this.style.transform = 'translateY(-2px) scale(1.02)';
+                }
+            }
+        });
+        
+        block.addEventListener('mouseleave', function() {
+            this.style.boxShadow = originalShadow;
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+
+    // Menu functionality
+    const menuButton = document.getElementById('menuButton');
+    const slideMenu = document.getElementById('slideMenu');
+    const menuOverlay = document.getElementById('menuOverlay');
+    const closeMenu = document.getElementById('closeMenu');
+
+    function openMenu() {
+        if (slideMenu && menuOverlay) {
+            slideMenu.classList.remove('-translate-x-full');
+            slideMenu.classList.add('menu-open');
+            slideMenu.style.transform = 'translateX(0)';
+            menuOverlay.classList.remove('hidden');
+            menuOverlay.classList.add('overlay-open');
+            menuOverlay.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeMenuFunc() {
+        if (slideMenu && menuOverlay) {
+            slideMenu.classList.add('-translate-x-full');
+            slideMenu.classList.remove('menu-open');
+            slideMenu.style.transform = 'translateX(-100%)';
+            menuOverlay.classList.add('hidden');
+            menuOverlay.classList.remove('overlay-open');
+            menuOverlay.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    }
+
+    if (menuButton) menuButton.addEventListener('click', openMenu);
+    if (closeMenu) closeMenu.addEventListener('click', closeMenuFunc);
+    if (menuOverlay) menuOverlay.addEventListener('click', closeMenuFunc);
+
+    // Smooth scrolling function
+    function scrollToSection(sectionId) {
+        const element = document.getElementById(sectionId);
+        if (element) {
+            element.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+            closeMenuFunc();
+        }
+    }
+
+    window.scrollToSection = scrollToSection;
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeMenuFunc();
+        if ((e.ctrlKey || e.metaKey) && e.key === 'm') {
+            e.preventDefault();
+            if (slideMenu.classList.contains('-translate-x-full')) {
+                openMenu();
+            } else {
+                closeMenuFunc();
+            }
+        }
+    });
+});
+</script>
+
+<!-- Dark Mode JavaScript -->
+<script src="{{ url_for('static', filename='dark-mode.js') }}"></script>
+{% endblock %}

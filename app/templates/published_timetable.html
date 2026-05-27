@@ -1,0 +1,239 @@
+﻿{% extends 'base.html' %} {% block title %}Published Timetable{% endblock %} {%
+block content %}
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "custom-purple": "#B39CD0",
+          "custom-pink": "#F1BBBA",
+          "custom-orange": "#F7C6A2",
+          "custom-yellow": "#FDFD96",
+          "custom-peach": "#F5D7B7",
+          "custom-light-blue": "#B2DFFF",
+          "custom-teal": "#6BADC6",
+        },
+      },
+    },
+  };
+</script>
+
+<!-- Enhanced styles matching dashboard theme -->
+<style>
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-50px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .animate-on-load {
+    animation: fadeInUp 0.8s ease-out;
+  }
+
+  .animate-slide-left {
+    animation: slideInLeft 0.6s ease-out;
+  }
+
+  .card-hover {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-hover:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-animated {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .btn-animated:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Dark mode toggle styles */
+  .dark-mode-toggle {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark-mode-toggle:hover {
+    transform: scale(1.1) rotate(15deg);
+  }
+</style>
+
+<div
+  class="container mx-auto mt-2 px-4 bg-gray-100 dark:bg-gray-900 text-slate-700 dark:text-gray-300 min-h-screen transition-colors duration-300"
+>
+  <!-- Header with navigation -->
+  <div
+    class="flex justify-between items-center mb-6 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg transition-colors duration-300 animate-on-load"
+  >
+    <div>
+      <h1
+        class="text-4xl font-extrabold bg-gradient-to-r from-custom-purple via-custom-pink to-custom-orange bg-clip-text text-transparent animate-slide-left"
+      >
+        📅 Final Timetable
+      </h1>
+      <p class="text-slate-600 dark:text-gray-400 mt-2">
+        <strong>{{ timetable.name }}</strong> - Published on {{
+        timetable.published_at.strftime('%B %d, %Y at %I:%M %p') }}
+      </p>
+      <p class="text-custom-purple font-semibold">
+        🏆 Winner with {{ timetable.vote_count }} votes
+      </p>
+    </div>
+    <div class="flex gap-3 items-center">
+      <!-- Dark Mode Toggle Button -->
+      <button
+        id="darkModeToggle"
+        class="p-2 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 transition-all duration-300 dark-mode-toggle"
+        title="Toggle dark mode"
+      >
+        <span class="text-gray-600 dark:text-yellow-400 text-lg">🌙</span>
+      </button>
+      <a
+        href="{{ url_for('main.export_timetable_pdf') }}"
+        class="bg-custom-orange hover:bg-custom-peach text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 btn-animated"
+      >
+        📄 Export PDF
+      </a>
+      <a
+        href="{{ url_for('main.dashboard') }}"
+        class="bg-custom-purple hover:bg-custom-pink text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 btn-animated"
+      >
+        🏠 Back to Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Final Timetable Display -->
+  <div
+    class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-2 border-custom-pink card-hover transition-colors duration-300 animate-on-load"
+  >
+    <div class="overflow-x-auto rounded-lg shadow-md">
+      <table class="min-w-full border-collapse border border-custom-purple">
+        <thead class="bg-custom-purple text-white">
+          <tr>
+            <th class="px-4 py-3 text-left border border-custom-pink font-bold">
+              📅 Day / Time
+            </th>
+            {% for slot in ['Slot 1', 'Slot 2', 'Slot 3', 'Slot 4', 'Slot 5',
+            'Slot 6'] %}
+            <th
+              class="px-4 py-3 text-center border border-custom-pink font-bold min-w-[150px]"
+            >
+              <div class="text-sm font-bold">⏰ {{ slot }}</div>
+              <div class="text-xs text-custom-yellow">
+                {% if slot == 'Slot 1' %}8:00-9:00{% endif %} {% if slot ==
+                'Slot 2' %}9:00-10:00{% endif %} {% if slot == 'Slot 3'
+                %}10:00-11:00{% endif %} {% if slot == 'Slot 4' %}11:00-12:00{%
+                endif %} {% if slot == 'Slot 5' %}12:00-1:00{% endif %} {% if
+                slot == 'Slot 6' %}1:00-2:00{% endif %}
+              </div>
+            </th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody class="bg-gray-50 dark:bg-gray-700">
+          {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+          %}
+          <tr
+            class="hover:bg-custom-peach dark:hover:bg-gray-600 transition-all duration-300"
+          >
+            <td
+              class="px-4 py-3 font-semibold border border-custom-pink bg-custom-purple text-white"
+            >
+              📅 {{ day }}
+            </td>
+            {% for slot in ['Slot 1', 'Slot 2', 'Slot 3', 'Slot 4', 'Slot 5',
+            'Slot 6'] %}
+            <td
+              class="px-2 py-3 border border-custom-pink text-center align-top"
+            >
+              {% if consolidated_data[day][slot] %} {% for class_info in
+              consolidated_data[day][slot] %} {% set parts =
+              class_info.split('|') %} {% if parts|length >= 3 %}
+              <div
+                class="mb-2 p-2 bg-white dark:bg-gray-600 rounded text-xs border border-custom-pink shadow-sm hover:shadow-md transition-all duration-300"
+              >
+                <div class="font-bold text-purple-800 dark:text-purple-300">
+                  📚 {{ parts[0] }}
+                </div>
+                <div class="text-gray-800 dark:text-gray-200 font-medium">
+                  🏫 {{ parts[1] }}
+                </div>
+                <div class="text-orange-600 dark:text-orange-400 font-semibold">
+                  👤 {{ parts[2] }}
+                </div>
+              </div>
+              {% endif %} {% endfor %} {% else %}
+              <span class="text-gray-600 dark:text-gray-400 text-sm font-medium"
+                >🌅 Free Period</span
+              >
+              {% endif %}
+            </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Summary Statistics -->
+  <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 animate-on-load">
+    <div
+      class="bg-green-100 dark:bg-green-900 p-4 rounded-lg shadow-md card-hover transition-colors duration-300"
+    >
+      <h4 class="font-bold text-green-800 dark:text-green-300">
+        🗳️ Total Votes
+      </h4>
+      <p class="text-2xl font-bold text-green-600 dark:text-green-400">
+        {{ timetable.vote_count }}
+      </p>
+    </div>
+    <div
+      class="bg-blue-100 dark:bg-blue-900 p-4 rounded-lg shadow-md card-hover transition-colors duration-300"
+    >
+      <h4 class="font-bold text-blue-800 dark:text-blue-300">
+        📋 Timetable Version
+      </h4>
+      <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+        Option {{ timetable.version }}
+      </p>
+    </div>
+    <div
+      class="bg-purple-100 dark:bg-purple-900 p-4 rounded-lg shadow-md card-hover transition-colors duration-300"
+    >
+      <h4 class="font-bold text-purple-800 dark:text-purple-300">
+        📅 Published
+      </h4>
+      <p class="text-lg font-bold text-purple-600 dark:text-purple-400">
+        {{ timetable.published_at.strftime('%m/%d/%Y') }}
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Dark Mode JavaScript -->
+<script src="{{ url_for('static', filename='dark-mode.js') }}"></script>
+{% endblock %}

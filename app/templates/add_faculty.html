@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add Faculty</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              "custom-purple": "#B39CD0",
+              "custom-pink": "#F1BBBA",
+              "custom-orange": "#F7C6A2",
+              "custom-yellow": "#FDFD96",
+              "custom-peach": "#F5D7B7",
+              "custom-light-blue": "#B2DFFF",
+              "custom-teal": "#6BADC6",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body
+    class="min-h-screen flex items-center justify-center bg-gray-100 text-slate-700 relative overflow-hidden"
+  >
+    <!-- Background blobs -->
+    <div
+      class="absolute -top-40 -left-40 w-96 h-96 bg-custom-purple rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"
+    ></div>
+    <div
+      class="absolute -bottom-40 -right-40 w-96 h-96 bg-custom-pink rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse delay-1000"
+    ></div>
+
+    <!-- Card -->
+    <div
+      class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 border-2 border-custom-pink animate-[fadeInUp_0.8s_ease-out]"
+    >
+      <h2
+        class="text-3xl font-extrabold mb-6 text-center bg-gradient-to-r from-custom-purple via-custom-pink to-custom-orange bg-clip-text text-transparent"
+      >
+        Add Faculty
+      </h2>
+
+      <form method="POST" class="space-y-5">
+        {{ form.hidden_tag() }}
+
+        <!-- Faculty Name -->
+        <div>
+          <label class="block text-sm font-semibold mb-1 text-custom-purple"
+            >Faculty Name</label
+          >
+          {{ form.name(class_="w-full px-4 py-2 rounded-xl border
+          border-custom-pink bg-custom-light-blue placeholder-gray-500
+          focus:outline-none focus:ring-4 focus:ring-custom-purple/50 transition
+          duration-300", placeholder="Enter faculty name") }}
+        </div>
+
+        <!-- Subject Expertise -->
+        <div>
+          <label class="block text-sm font-semibold mb-1 text-custom-purple"
+            >Subject Expertise</label
+          >
+          {{ form.subject(class_="w-full px-4 py-2 rounded-xl border
+          border-custom-pink bg-custom-light-blue placeholder-gray-500
+          focus:outline-none focus:ring-4 focus:ring-custom-purple/50 transition
+          duration-300", placeholder="Enter subject expertise") }}
+        </div>
+
+        <!-- Submit Button -->
+        <div>
+          {{ form.submit(class_="w-full bg-custom-purple hover:bg-custom-pink
+          text-white font-bold py-3 px-4 rounded-xl shadow-lg transition
+          transform hover:scale-105 focus:ring-4 focus:ring-custom-purple/50")
+          }}
+        </div>
+      </form>
+
+      <!-- Back link -->
+      <div class="mt-6 text-center">
+        <a
+          href="{{ url_for('main.dashboard') }}"
+          class="inline-block text-custom-purple hover:text-custom-pink hover:underline transition transform hover:scale-105"
+        >
+          ⬅ Back to Dashboard
+        </a>
+      </div>
+    </div>
+
+    <!-- Animations -->
+    <style>
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+
+    <!-- Dark Mode Restore -->
+    <script>
+      if (localStorage.getItem("theme") === "dark") {
+        document.documentElement.classList.add("dark");
+      }
+    </script>
+  </body>
+</html>
